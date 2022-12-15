@@ -1,0 +1,3 @@
+[workspace]
+members = ["try-stm32", "xtask"]
+default-members = ["xtask"]
