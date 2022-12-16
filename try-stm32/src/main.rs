@@ -3,13 +3,15 @@
 
 mod isr;
 
+#[macro_use]
+extern crate rcore_console;
+
+use rcore_console::init_console;
+
 #[inline(never)]
 fn main() -> ! {
-    const UART0DR: *mut u32 = 0x4000C000 as _;
-
-    for c in b"Hello,world" {
-        unsafe { UART0DR.write_volatile(*c as _) };
-    }
+    init_console(&Console);
+    println!("Hello, world!");
 
     loop {
         core::hint::spin_loop();
@@ -29,4 +31,13 @@ extern "C" fn nmi_handler() -> ! {
 #[panic_handler]
 fn panic(_: &core::panic::PanicInfo) -> ! {
     nmi_handler()
+}
+
+struct Console;
+
+impl rcore_console::Console for Console {
+    #[inline]
+    fn put_char(&self, c: u8) {
+        unsafe { (0x4000C000 as *mut u32).write_volatile(c as _) };
+    }
 }
