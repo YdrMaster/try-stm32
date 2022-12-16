@@ -100,7 +100,7 @@ impl QemuArgs {
     fn run(self) {
         let elf = self.build.make();
         Qemu::system("arm")
-            .args(&["-machine", "stm32vldiscovery"])
+            .args(&["-machine", "lm3s6965evb"])
             .arg("-nographic")
             .arg("-kernel")
             .arg(objcopy(elf, true))

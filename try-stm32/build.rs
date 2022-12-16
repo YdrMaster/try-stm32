@@ -8,42 +8,43 @@
 }
 
 const LINKER: &[u8] = b"
-ENTRY(reset_handler)
-
 MEMORY {
-    FLASH (rx)  : ORIGIN = 0x08000000, LENGTH = 128K
-    RAM   (rwx) : ORIGIN = 0x20000000, LENGTH = 40K
+    FLASH (rx) : ORIGIN = 0x00000000, LENGTH = 256K
+    SRAM (rwx) : ORIGIN = 0x20000000, LENGTH = 256K
 }
 
 SECTIONS {
-    _sstack = ORIGIN(RAM) + LENGTH(RAM);
-    _sidata = LOADADDR(.data);
-
-    .isr_vector :
-    {
-        LONG(_sstack);
-        LONG(reset_handler);
-    } > FLASH
-
     .text : {
-        *(.text .text.*)
+        _text = .;
+        KEEP(*(.isr_vector))
+        *(.text*)
+        *(.rodata*)
+        _etext = .;
     } > FLASH
 
-    .rodata : {
-        *(.rodata .rodata.*)
-    } > FLASH
+    /DISCARD/ : {
+        *(.ARM.exidx*)
+        *(.gnu.linkonce.armexidx.*)
+    }
 
-    .data : AT(ADDR(.rodata) + SIZEOF(.rodata))
-    {
-        _sdata = .;
-        *(.data .data.*)
+    .data : AT(ADDR(.text) + SIZEOF(.text)) {
+        _data = .;
+        *(vtable)
+        *(.data*)
         _edata = .;
-    } > RAM
+    } > SRAM
 
-    .bss (NOLOAD) :
-    {
-        _sbss = .;
-        *(.bss)
+    .bss : {
+        _bss = .;
+        *(.bss*)
+        *(COMMON)
         _ebss = .;
-    } > RAM
+    } > SRAM
+
+    . = ALIGN(32);           /*Not sure if this needs to be done, but why not.*/
+    _p_stack_bottom = .;
+    . = . + 0x4000;
+    _p_stack_top = 0x20008000;
+    . = . + 0x4000;          /*Allocate 4K for the Stack.*/
+    _stack_top = 0x2000c000;  /*Address of the top of the heap, also end of RAM.*/
 }";
