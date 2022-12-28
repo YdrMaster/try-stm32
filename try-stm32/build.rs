@@ -29,17 +29,19 @@ SECTIONS {
 
     .data : AT(ADDR(.text) + SIZEOF(.text)) {
         _data = .;
-        *(vtable)
-        *(.data*)
+        *(.data .data.*)
+        *(.sdata .sdata.*)
         _edata = .;
     } > SRAM
 
     .bss : {
         _bss = .;
-        *(.bss*)
-        *(COMMON)
+        *(.bss .bss.*)
+        *(.sbss .sbss.*)
         _ebss = .;
     } > SRAM
+
+    _sidata = LOADADDR(.data);
 
     . = ALIGN(32);           /*Not sure if this needs to be done, but why not.*/
     _p_stack_bottom = .;
